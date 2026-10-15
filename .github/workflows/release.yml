@@ -1,0 +1,151 @@
+# Gera uma nova release a cada PR mergeado na main.
+#
+# Versão (vMAJOR.MINOR.PATCH) definida pelos labels do PR:
+#   (nenhum)       sobe o PATCH  -> v1.2.3 -> v1.2.4
+#   release:minor  sobe o MINOR  -> v1.2.3 -> v1.3.0
+#   release:major  sobe o MAJOR  -> v1.2.3 -> v2.0.0
+#   release:skip   não gera release
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+# Uma release por vez, para dois merges seguidos não calcularem a mesma versão.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  versao:
+    if: >-
+      github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.labels.*.name, 'release:skip')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.proxima.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Calcular próxima versão
+        id: proxima
+        env:
+          MAJOR: ${{ contains(github.event.pull_request.labels.*.name, 'release:major') }}
+          MINOR: ${{ contains(github.event.pull_request.labels.*.name, 'release:minor') }}
+        run: |
+          ultima=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n1)
+          if [ -z "$ultima" ]; then
+            proxima=v0.1.0
+          else
+            IFS=. read -r major minor patch <<< "${ultima#v}"
+            if [ "$MAJOR" = true ]; then
+              proxima="v$((major + 1)).0.0"
+            elif [ "$MINOR" = true ]; then
+              proxima="v${major}.$((minor + 1)).0"
+            else
+              proxima="v${major}.${minor}.$((patch + 1))"
+            fi
+          fi
+          echo "Última versão: ${ultima:-nenhuma} -> nova versão: $proxima"
+          echo "tag=$proxima" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: versao
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            plataforma: windows
+            modo: --onefile
+            executavel: dist/BrasiliaFight.exe
+          - os: macos-latest
+            plataforma: macos
+            modo: --onedir
+            executavel: dist/BrasiliaFight.app/Contents/MacOS/BrasiliaFight
+          - os: ubuntu-latest
+            plataforma: linux
+            modo: --onefile
+            executavel: dist/BrasiliaFight
+    runs-on: ${{ matrix.os }}
+    env:
+      PACOTE: BrasiliaFight-${{ needs.versao.outputs.tag }}-${{ matrix.plataforma }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: python -m pip install -r requirements.txt "pyinstaller>=6,<7"
+
+      - name: Compilar
+        run: >-
+          pyinstaller main.py --name BrasiliaFight --windowed ${{ matrix.modo }}
+          --add-data "assets:assets" --noconfirm
+
+      - name: Empacotar
+        run: |
+          case "$RUNNER_OS" in
+            Windows) (cd dist && 7z a "../$PACOTE.zip" BrasiliaFight.exe) ;;
+            macOS)   ditto -c -k --keepParent dist/BrasiliaFight.app "$PACOTE.zip" ;;
+            Linux)   tar -czf "$PACOTE.tar.gz" -C dist BrasiliaFight ;;
+          esac
+
+      # Abre o jogo sem janela nem som por alguns segundos: se fechar sozinho, algo quebrou.
+      - name: Testar se o jogo abre
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          python - "${{ matrix.executavel }}" <<'EOF'
+          import subprocess, sys
+          try:
+              proc = subprocess.run([sys.argv[1]], timeout=8)
+          except subprocess.TimeoutExpired:
+              print("O jogo abriu e continuou rodando.")
+          else:
+              sys.exit(f"O jogo fechou sozinho (código {proc.returncode}).")
+          EOF
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.plataforma }}
+          path: ${{ env.PACOTE }}.*
+          if-no-files-found: error
+
+  release:
+    needs: [versao, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-*
+          path: pacotes
+          merge-multiple: true
+
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.versao.outputs.tag }}
+          SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          gh release create "$TAG" pacotes/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$SHA" \
+            --title "Brasília Fight $TAG" \
+            --generate-notes

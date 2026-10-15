@@ -15,6 +15,8 @@ python3 -m venv .venv
 
 Atalhos globais: **F11** tela cheia · **M** liga/desliga música · **ESC** pausa / volta.
 
+Ou baixe a versão pronta para Windows, macOS ou Linux na página de **Releases** do GitHub.
+
 ## Modos
 
 - **1 jogador**: você contra a CPU (dificuldade Fácil / Normal / Difícil no menu)
@@ -119,6 +121,26 @@ brfight/hud.py          barras de vida/super, cronômetro, combos
 brfight/scenes.py       título, seleção, VS, luta, pausa, resultado
 tools/                  pixelar.py e checar_audios.py
 ```
+
+## Releases
+
+Todo PR mergeado na `main` gera uma release automaticamente
+(`.github/workflows/release.yml`): o jogo é compilado com PyInstaller para Windows, macOS e
+Linux, testado e publicado em **Releases** com as notas geradas a partir dos PRs.
+
+A versão segue `vMAJOR.MINOR.PATCH` e, por padrão, sobe o PATCH. Para mudar, coloque um
+label no PR antes do merge:
+
+| Label           | Efeito                |
+|-----------------|-----------------------|
+| (nenhum)        | v1.2.3 → v1.2.4       |
+| `release:minor` | v1.2.3 → v1.3.0       |
+| `release:major` | v1.2.3 → v2.0.0       |
+| `release:skip`  | não gera release      |
+
+A primeira release é a `v0.1.0`. O app de macOS não é assinado e roda em Apple Silicon
+(M1 ou mais novo): na primeira vez, libere em Ajustes do Sistema → Privacidade e
+Segurança → "Abrir Mesmo Assim".
 
 ## Créditos
 
