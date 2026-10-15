@@ -21,7 +21,7 @@ Ou baixe a versão pronta para Windows, macOS ou Linux na página de **Releases*
 
 - **1 jogador**: você contra a CPU (dificuldade Fácil / Normal / Difícil no menu)
 - **2 jogadores**: no mesmo teclado ou com dois controles
-- **CPU x CPU**: modo demonstração
+- **CPU x CPU**: modo demonstração — você escolhe os dois lutadores (R = aleatório) e assiste
 
 Partidas em melhor de 3 rounds, 99 segundos por round.
 
