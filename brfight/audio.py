@@ -23,6 +23,9 @@ _voice_channel = {}
 _music_sound = None
 _music_channel = None
 music_on = True
+_duck_until = 0
+MUSIC_FILE_VOLUME = 0.5
+DUCK = 0.35  # volume relativo da música enquanto uma fala real toca
 
 
 def init():
@@ -165,25 +168,47 @@ def _sfx_defs():
     return d
 
 
-def sfx(name, volume=0.8):
+def sfx(name, volume=0.8, fallback=None):
+    """Toca um efeito (arquivo em assets/sons ou sintetizado). Retorna a duração em segundos."""
     if not _enabled:
-        return
+        return 0.0
     key = ("sfx", name)
     if key not in _cache:
         f = _find_file(ASSETS / "sons" / name)
+        entry = None
         if f:
             try:
-                _cache[key] = pygame.mixer.Sound(str(f))
+                entry = (pygame.mixer.Sound(str(f)), True)
             except pygame.error:
-                f = None
-        if not f:
-            defs = _SFX.get(name)
-            if defs is None:
-                return
-            _cache[key] = _to_sound(defs)
-    snd = _cache[key]
+                entry = None
+        if entry is None and name in _SFX:
+            entry = (_to_sound(_SFX[name]), False)
+        _cache[key] = entry
+    entry = _cache[key]
+    if entry is None:
+        return sfx(fallback, volume) if fallback else 0.0
+    snd, real = entry
     snd.set_volume(volume)
     snd.play()
+    if real and (name == "fight" or name.startswith("round")):
+        _duck(snd.get_length())  # locutor real: abaixa a música
+    return snd.get_length()
+
+
+def _duck(seconds):
+    global _duck_until
+    _duck_until = max(_duck_until, pygame.time.get_ticks() + int(seconds * 1000) + 150)
+    pygame.mixer.Channel(0).set_volume(DUCK)
+    pygame.mixer.music.set_volume(MUSIC_FILE_VOLUME * DUCK)
+
+
+def update():
+    """Chamado a cada quadro: devolve o volume da música depois de uma fala."""
+    global _duck_until
+    if _enabled and _duck_until and pygame.time.get_ticks() > _duck_until:
+        _duck_until = 0
+        pygame.mixer.Channel(0).set_volume(1.0)
+        pygame.mixer.music.set_volume(MUSIC_FILE_VOLUME)
 
 
 # ------------------------------------------------------------------- vozes ---
@@ -253,24 +278,32 @@ def babble(text, pitch=130.0, rasp=0.0, seed=0):
     return np.tanh(out * 1.6) * 0.7
 
 
-def voice(char_id, line_id, text, pitch=130.0, rasp=0.0, slot=1):
-    """Toca a fala de um personagem. Usa o arquivo real se existir, senão sintetiza."""
+def voice(char_id, line_id, text, pitch=130.0, rasp=0.0, slot=1, synth=True):
+    """Toca a fala de um personagem. Usa o arquivo real se existir; senão sintetiza (se synth=True).
+
+    Retorna a duração em segundos (0 se nada tocou)."""
     if not _enabled:
-        return
+        return 0.0
     key = ("voz", char_id, line_id)
     if key not in _cache:
         f = _find_file(ASSETS / "personagens" / char_id / line_id)
-        snd = None
+        entry = None
         if f:
             try:
-                snd = pygame.mixer.Sound(str(f))
+                entry = (pygame.mixer.Sound(str(f)), True)
             except pygame.error:
-                snd = None
-        if snd is None:
-            snd = _to_sound(babble(text, pitch, rasp, seed=hash((char_id, line_id)) & 0xFFFF), 0.9)
-        _cache[key] = snd
-    ch = pygame.mixer.Channel(slot)
-    ch.play(_cache[key])
+                entry = None
+        if entry is None and synth:
+            entry = (_to_sound(babble(text, pitch, rasp, seed=hash((char_id, line_id)) & 0xFFFF), 0.9), False)
+        _cache[key] = entry
+    entry = _cache[key]
+    if entry is None:
+        return 0.0
+    sound, real = entry
+    pygame.mixer.Channel(slot).play(sound)
+    if real:
+        _duck(sound.get_length())
+    return sound.get_length()
 
 
 def has_real_voice(char_id, line_id):
@@ -363,7 +396,7 @@ def play_music():
         try:
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load(str(files[0]))
-                pygame.mixer.music.set_volume(0.5)
+                pygame.mixer.music.set_volume(MUSIC_FILE_VOLUME)
                 pygame.mixer.music.play(-1)
             return
         except pygame.error:
