@@ -19,7 +19,7 @@ CHARACTERS = {
             "pants": (36, 42, 66), "shoes": (28, 24, 22),
         },
         "alt": {"shirt": (40, 90, 200), "trim": (252, 214, 30), "pants": (240, 240, 240)},
-        "intro": {"id": "intro", "fala": "É só um minutozinho."},
+        "intro": {"id": "intro", "fala": "Acabou, porra!"},
         "wins": [
             {"id": "vitoria1", "fala": "Chega de frescura, de mimimi!"},
             {"id": "vitoria2", "fala": "Obrigado, meu Deus!"},

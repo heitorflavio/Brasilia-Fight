@@ -12,7 +12,7 @@ Fonte VT323 (assets/fontes/VT323-Regular.ttf)
 Personagens, itens, efeitos sonoros, vozes sintetizadas e música: gerados por código neste projeto.
 
 Falas reais (assets/personagens/*/*.wav, exceto nome.wav)
-  Xandão e partes do Bolsonaro (intro, ko): vídeo de referência do TikTok @mortalkombatbrasileirox,
+  Xandão e o grito de nocaute do Bolsonaro (ko): vídeo de referência do TikTok @mortalkombatbrasileirox,
   voz separada da música com Demucs.
   Demais falas do Bolsonaro e do Lula: recortes de áudios enviados por usuários ao myinstants.com.
 Locutor (assets/sons/round1.wav, round2.wav, round3.wav, fight.wav): áudios "Mortal Kombat" do myinstants.com.
