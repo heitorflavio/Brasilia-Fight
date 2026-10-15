@@ -60,7 +60,7 @@ O jogo já vem com **áudio real em todas as falas**:
 
 - **Xandão:** trechos do vídeo de referência, com a voz separada da música;
 - **Bolsonaro e Lula:** recortes de áudios conhecidos do [myinstants](https://www.myinstants.com), mais o
-  "É só um minutozinho" e o grito de nocaute do Bolsonaro, que vêm do vídeo de referência;
+  grito de nocaute do Bolsonaro, que vem do vídeo de referência;
 - **Locutor:** "Round one / Round two / Final round / Fight!" no estilo Mortal Kombat (myinstants);
 - **Nomes na tela de seleção:** locutor genérico gerado com uma voz do macOS (não imita ninguém).
 
