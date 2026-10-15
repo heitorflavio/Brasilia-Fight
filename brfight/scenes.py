@@ -121,47 +121,50 @@ class TitleScene(Scene):
 
 class SelectScene(Scene):
     CARD_W, CARD_H = 124, 160
+    # quadros (~0,25 s) em que o cursor ignora entrada: um Enter repetido (ou "tremido" pelo
+    # teclado) não pode confirmar ao entrar na tela nem travar o adversário junto com o P1
+    GUARD = 15
 
     def __init__(self, game, mode):
         super().__init__(game)
         self.mode = mode
         self.cur = [0, 2]
         self.locked = [False, False]
+        self.wait = [self.GUARD, self.GUARD]
         self.done_t = 0
         self.styles = {c: style_for(c) for c in ORDER}
-        if mode == "cpu":
-            self.cur = [random.randrange(3), random.randrange(3)]
-            self.locked = [True, True]
 
     def _move(self, who, d):
-        if not self.locked[who]:
+        if not self.locked[who] and not self.wait[who]:
             self.cur[who] = (self.cur[who] + d) % len(ORDER)
             audio.sfx("select")
 
     def _confirm(self, who):
-        if not self.locked[who]:
+        if not self.locked[who] and not self.wait[who]:
             self.locked[who] = True
+            if who == 0 and self.mode != "2p":
+                self.wait[1] = self.GUARD  # o mesmo teclado passa a escolher o adversário
             audio.sfx("confirmar")
             cid = ORDER[self.cur[who]]
             audio.voice(cid, "nome", CHARACTERS[cid]["name"].title() + "!",
                         CHARACTERS[cid]["voice"]["pitch"], CHARACTERS[cid]["voice"]["rasp"], slot=1 + who)
 
     def _active(self):
-        """Quem está escolhendo com o teclado do P1 no modo 1 jogador."""
+        """Quem está escolhendo com o teclado do P1 nos modos 1 jogador e CPU x CPU."""
         return 0 if not self.locked[0] else 1
 
     def handle(self, events):
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
-                    if self.mode == "1p" and self.locked[0] and not self.locked[1]:
+                    if self.mode != "2p" and self.locked[0] and not self.locked[1]:
                         self.locked[0] = False
                     elif self.mode == "2p" and any(self.locked) and not all(self.locked):
                         self.locked = [False, False]
                     else:
                         self.game.change(TitleScene(self.game))
                     continue
-                if self.mode == "1p":
+                if self.mode != "2p":
                     who = self._active()
                     if e.key in (pygame.K_a, pygame.K_LEFT):
                         self._move(who, -1)
@@ -169,9 +172,9 @@ class SelectScene(Scene):
                         self._move(who, 1)
                     elif e.key in CONFIRM_KEYS + (pygame.K_j,):
                         self._confirm(who)
-                    elif e.key == pygame.K_r and who == 1:
-                        self.cur[1] = random.randrange(3)
-                        self._confirm(1)
+                    elif e.key == pygame.K_r and (who == 1 or self.mode == "cpu") and not self.wait[who]:
+                        self.cur[who] = random.randrange(len(ORDER))
+                        self._confirm(who)
                 elif self.mode == "2p":
                     if e.key == pygame.K_a:
                         self._move(0, -1)
@@ -186,7 +189,12 @@ class SelectScene(Scene):
                     elif e.key in KEYMAP_P2["punch"] or e.key in (pygame.K_KP_ENTER,):
                         self._confirm(1)
                     elif e.key == pygame.K_RETURN:
-                        self._confirm(0 if not self.locked[0] else 1)
+                        if not self.locked[0]:
+                            self._confirm(0)
+                            if self.locked[0]:
+                                self.wait[1] = self.GUARD  # o mesmo Enter não confirma os dois
+                        else:
+                            self._confirm(1)
             elif e.type == pygame.JOYHATMOTION or e.type == pygame.JOYBUTTONDOWN:
                 joys = self.game.joysticks
                 idx = next((i for i, j in enumerate(joys) if j.get_instance_id() == e.instance_id), None)
@@ -200,9 +208,10 @@ class SelectScene(Scene):
 
     def update(self):
         super().update()
+        self.wait = [max(0, w - 1) for w in self.wait]
         if all(self.locked):
             self.done_t += 1
-            if self.done_t > (70 if self.mode == "cpu" else 45):
+            if self.done_t > 45:
                 p1, p2 = ORDER[self.cur[0]], ORDER[self.cur[1]]
                 self.game.change(VSScene(self.game, p1, p2, self.mode))
 
@@ -229,8 +238,8 @@ class SelectScene(Scene):
                 if blink:
                     pygame.draw.rect(surf, col, r.inflate(4 + w * 6, 4 + w * 6), 3, border_radius=8)
                 tag = "1P" if w == 0 else ("CPU" if self.mode != "2p" else "2P")
-                if self.mode == "cpu" and w == 0:
-                    tag = "CPU 1"
+                if self.mode == "cpu":
+                    tag = f"CPU {w + 1}"
                 gfx.draw_text(surf, tag, 16, (r.left + 4, r.top + 4) if w == 0 else (r.right - 4, r.top + 4),
                               (255, 255, 255), "topleft" if w == 0 else "topright", outline=col, ow=2)
         for w in (0, 1):
@@ -240,7 +249,7 @@ class SelectScene(Scene):
         elif self.mode == "2p":
             msg = "P1: A/D + J   •   P2: setas + vírgula (ou Num1)   •   Enter confirma"
         else:
-            msg = "Modo demonstração"
+            msg = ("Escolha a CPU 1" if not self.locked[0] else "Agora escolha a CPU 2") + " (R = aleatório)"
         gfx.draw_text(surf, msg, 15, (GAME_W // 2, GAME_H - 18), (255, 255, 255), "midtop")
 
     def _info(self, surf, cid, w):
