@@ -56,34 +56,27 @@ O balanceamento foi ajustado com simulações CPU x CPU (cada personagem vence ~
 
 ## Áudio real das falas
 
-Toda fala tem uma voz sintetizada "estilo videogame" como padrão. Para usar o **áudio real**
-de cada fala, coloque o arquivo (`.mp3`, `.ogg` ou `.wav`) com o nome certo na pasta do
-personagem — o jogo usa o arquivo automaticamente:
+O jogo já vem com **áudio real em todas as falas**:
 
-```
-assets/personagens/bolsonaro/cloroquina.mp3
-assets/personagens/bolsonaro/leite_condensado.mp3
-assets/personagens/bolsonaro/viagra.mp3
-assets/personagens/lula/picanha.mp3
-assets/personagens/lula/abobora.mp3
-assets/personagens/lula/pinga51.mp3
-assets/personagens/xandao/constituicao.mp3
-assets/personagens/xandao/inquerito.mp3
-assets/personagens/xandao/censurado.mp3
-... e também nome, intro, vitoria1, vitoria2, vitoria3 para cada um
-```
+- **Xandão:** trechos do vídeo de referência, com a voz separada da música;
+- **Bolsonaro e Lula:** recortes de áudios conhecidos do [myinstants](https://www.myinstants.com), mais o
+  "É só um minutozinho" e o grito de nocaute do Bolsonaro, que vêm do vídeo de referência;
+- **Locutor:** "Round one / Round two / Final round / Fight!" no estilo Mortal Kombat (myinstants);
+- **Nomes na tela de seleção:** locutor genérico gerado com uma voz do macOS (não imita ninguém).
 
-Para ver a lista completa (com o texto de cada fala) e o que ainda falta:
+Os balões mostram o que se ouve em cada áudio. Enquanto alguém fala, a música abaixa sozinha,
+e o jogo espera a fala terminar antes de seguir (introdução, "Fight!", vitória).
+
+Para trocar uma fala, coloque o arquivo (`.wav`, `.ogg` ou `.mp3`) em
+`assets/personagens/<personagem>/<fala>` e ajuste o texto do balão em `brfight/characters.py`.
+Para ver os nomes de todas as falas e o que já tem áudio:
 
 ```bash
 .venv/bin/python tools/checar_audios.py
 ```
 
-Dica: corte os trechos curtos (1–3 s) e normalize o volume. Os textos das falas ficam em
-`brfight/characters.py` — se trocar o áudio por outra frase, troque o texto do balão também.
-
-Outros sons também podem ser substituídos: `assets/sons/<nome>.wav` (ex.: `ko`, `fight`,
-`soco`, `chute`, `vitoria`) e a música: qualquer arquivo em `assets/musica/`.
+Cada personagem também pode ter um `ko.wav`, grito ao ser nocauteado. Os sons do locutor ficam em
+`assets/sons/` (`round1`, `round2`, `round3`, `fight`) e a música em `assets/musica/`.
 
 ## Rostos reais (opcional)
 

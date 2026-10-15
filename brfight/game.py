@@ -49,6 +49,7 @@ class Game:
                     audio.toggle_music()
             elif e.type in (pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
                 self._scan_joysticks()
+        audio.update()
         scene = self.scene
         scene.handle(events)
         if self.scene is scene:

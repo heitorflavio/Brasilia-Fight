@@ -275,6 +275,8 @@ class VSScene(Scene):
         self.stage = game.next_stage()
         self.s1 = style_for(p1)
         self.s2 = style_for(p2, alt=(p1 == p2))
+        self.name2_at = 70  # quando o locutor chama o 2º nome (espera o 1º terminar)
+        self.end_at = 190
         audio.sfx("round")
 
     def handle(self, events):
@@ -290,11 +292,13 @@ class VSScene(Scene):
         super().update()
         if self.t == 20:
             v = CHARACTERS[self.p1]["voice"]
-            audio.voice(self.p1, "nome", CHARACTERS[self.p1]["name"].title() + "!", v["pitch"], v["rasp"], 1)
-        if self.t == 70:
+            length = audio.voice(self.p1, "nome", CHARACTERS[self.p1]["name"].title() + "!", v["pitch"], v["rasp"], 1)
+            self.name2_at = 20 + max(50, int(length * 60) + 8)
+        if self.t == self.name2_at:
             v = CHARACTERS[self.p2]["voice"]
-            audio.voice(self.p2, "nome", CHARACTERS[self.p2]["name"].title() + "!", v["pitch"], v["rasp"], 2)
-        if self.t > 190:
+            length = audio.voice(self.p2, "nome", CHARACTERS[self.p2]["name"].title() + "!", v["pitch"], v["rasp"], 2)
+            self.end_at = max(190, self.t + int(length * 60) + 30)
+        if self.t > self.end_at:
             self.start()
 
     def draw(self, surf):
@@ -370,6 +374,10 @@ class FightScene(Scene):
         self.winner = None
         self.phase = "intro" if first else "call"
         self.phase_t = 0
+        self.fight_at = 70
+        self.next_at = 0
+        self.intro_step = 0
+        self.quote_end = 0
         if first:
             a.set_state("intro")
             b.set_state("intro")
@@ -497,18 +505,23 @@ class FightScene(Scene):
         a, b = self.fighters
         pt = self.phase_t
         if self.phase == "intro":
+            # um fala, depois o outro (esperando o áudio real terminar), depois começa o round
             if pt == 15:
-                a.say(a.data["intro"]["id"], a.data["intro"]["fala"])
-            if pt == 95:
-                b.say(b.data["intro"]["id"], b.data["intro"]["fala"])
-            if pt > 185:
+                self.next_at = 15 + max(80, a.say(a.data["intro"]["id"], a.data["intro"]["fala"]) + 12)
+                self.intro_step = 1
+            elif self.intro_step == 1 and pt >= self.next_at:
+                self.next_at = pt + max(90, b.say(b.data["intro"]["id"], b.data["intro"]["fala"]) + 20)
+                self.intro_step = 2
+            elif self.intro_step == 2 and pt >= self.next_at:
                 self._begin_call()
         elif self.phase == "call":
             if pt == 1:
-                audio.sfx("round")
-            if pt == 70:
-                audio.sfx("fight")
-            if pt >= 110:
+                # locutor por round (assets/sons/round1, round2, round3) ou o som sintetizado
+                length = audio.sfx(f"round{self.round}", 1.0, fallback="round")
+                self.fight_at = max(70, int(length * 60) + 6)
+            if pt == self.fight_at:
+                audio.sfx("fight", 1.0)
+            if pt >= self.fight_at + 40:
                 self.phase = "fight"
                 self.phase_t = 0
         elif self.phase == "ko":
@@ -517,18 +530,18 @@ class FightScene(Scene):
                 if self.winner.state in FREE or self.winner.state in ("block", "hit"):
                     self.winner.set_state("win")
                     line = random_win_line(self.winner)
-                    self.winner.say(line["id"], line["fala"])
+                    self.quote_end = pt + self.winner.say(line["id"], line["fala"])
                     self.round_quote = line
                     self.excite = 1.0
                     audio.sfx("vitoria", 0.6)
-            if pt > 230 or (self.winner is None and pt > 120):
+            if pt > max(230, self.quote_end + 30) or (self.winner is None and pt > 120):
                 self._award()
         elif self.phase == "timeup":
             if pt == 100 and self.winner is not None:
                 self.winner.set_state("win")
                 line = random_win_line(self.winner)
-                self.winner.say(line["id"], line["fala"])
-            if pt > 240:
+                self.quote_end = pt + self.winner.say(line["id"], line["fala"])
+            if pt > max(240, self.quote_end + 30):
                 self._award()
 
     def _time_up(self):
@@ -660,10 +673,10 @@ class FightScene(Scene):
     def _draw_banners(self, surf):
         pt = self.phase_t
         if self.phase == "call":
-            if pt < 70:
+            if pt < self.fight_at:
                 self._banner(surf, f"ROUND {self.round}", 56)
             else:
-                scale = 1 + max(0, (80 - pt) / 10) * 0.4
+                scale = 1 + max(0, (self.fight_at + 10 - pt) / 10) * 0.4
                 self._banner(surf, "FIGHT!", int(74 * scale), (255, 255, 140), (240, 140, 0))
         elif self.phase == "ko":
             if pt < 160:

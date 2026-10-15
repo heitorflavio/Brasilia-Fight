@@ -121,10 +121,12 @@ class Fighter:
         return self.state == "block" and self.holding_down
 
     def say(self, line_id, text):
-        self.bubble = text
-        self.bubble_t = 110
+        """Mostra o balão e toca a fala. Retorna a duração da fala em quadros."""
         v = self.data["voice"]
-        audio.voice(self.id, line_id, text, v["pitch"], v["rasp"], slot=1 + self.player)
+        frames = int(audio.voice(self.id, line_id, text, v["pitch"], v["rasp"], slot=1 + self.player) * 60)
+        self.bubble = text
+        self.bubble_t = max(110, frames + 20)
+        return frames
 
     def consume(self, action):
         if self.buf.get(action, 0) > 0:
@@ -460,6 +462,8 @@ class Fighter:
 
         if self.hp <= 0:
             self.dead = True
+            v = self.data["voice"]  # grito real ao ser nocauteado (só se houver arquivo ko)
+            audio.voice(self.id, "ko", "", v["pitch"], v["rasp"], slot=1 + self.player, synth=False)
             self.set_state("air_hit")
             self.vy = -7.5
             self.vx = direction * 4.2

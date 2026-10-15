@@ -20,6 +20,7 @@ def lines_for(cid):
         yield sp["id"], sp["fala"]
     for w in d["wins"]:
         yield w["id"], w["fala"]
+    yield "ko", "(grito ao ser nocauteado — opcional, sem voz sintetizada)"
 
 
 def main():
@@ -28,7 +29,7 @@ def main():
         print(f"\n{CHARACTERS[cid]['full']}  ->  {ASSETS / 'personagens' / cid}")
         for line_id, text in lines_for(cid):
             ok = has_real_voice(cid, line_id)
-            missing += not ok
+            missing += not ok and line_id != "ko"
             print(f"  [{'OK' if ok else '--'}] {line_id + '.mp3/.ogg/.wav':28s} \"{text}\"")
     print(f"\n{missing} falas ainda usam voz sintetizada.")
 
