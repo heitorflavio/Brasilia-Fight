@@ -1,0 +1,127 @@
+BRASÍLIA FIGHT — créditos de terceiros
+
+Projeto acadêmico de humor/paródia, sem fins comerciais. Cada item traz autor, fonte, licença
+(quando informada) e o que foi alterado.
+
+============================================================================================
+IMAGENS E FONTES
+============================================================================================
+
+Cenário "Congresso Nacional" (assets/bg/congresso_por_do_sol.jpg)
+  Foto: "Pôr do sol sobre Congresso Nacional do Brasil", por Dasfour2022 (Wikimedia Commons)
+  Fonte: https://commons.wikimedia.org/wiki/File:P%C3%B4r_do_sol_sobre_Congresso_Nacional_do_Brasil.jpg
+  Licença: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+  Alteração: o jogo recorta, reduz a resolução e a paleta de cores (pixel art).
+
+Fonte VT323 (assets/fontes/VT323-Regular.ttf)
+  Copyright 2011, The VT323 Project Authors
+  Fonte: https://fonts.google.com/specimen/VT323
+  Licença: SIL Open Font License 1.1 (assets/fontes/OFL-VT323.txt)
+  Alteração: nenhuma.
+
+Personagens, itens, torcida, efeitos sonoros, vozes sintetizadas e música: gerados por código
+neste projeto.
+
+============================================================================================
+FALAS REAIS (assets/personagens/<personagem>/*.wav)
+============================================================================================
+
+Os áudios abaixo são de terceiros e não têm licença explícita. Foram usados apenas como recurso
+de uma apresentação acadêmica de paródia; antes de qualquer publicação fora desse contexto,
+devem ser substituídos ou ter os direitos verificados.
+
+Alteração em todos: recorte só da fala, volume igualado entre os personagens e transições
+curtas de volume no início e no fim.
+
+Vídeo de referência
+  "Mortal Kombat brasileiro", perfil @mortalkombatbrasileirox no TikTok
+  Fonte: https://www.tiktok.com/@mortalkombatbrasileirox (vídeo salvo em 11/10/2026)
+  Licença: não informada.
+  Usado em: todas as falas do Xandão (intro, constituicao, inquerito, censurado, vitoria1,
+  vitoria2, vitoria3) e o grito de nocaute do Bolsonaro (bolsonaro/ko.wav).
+  Alteração extra: voz separada da música com Demucs (ver Ferramentas).
+
+Myinstants (https://www.myinstants.com) — áudios enviados por usuários; o site não informa
+licença. Página de origem de cada fala, identificada comparando o áudio do jogo com o do site:
+
+  Bolsonaro
+    intro.wav             "Acabou, porra!"
+                          https://www.myinstants.com/pt/instant/bolsonaro-acabou-porra-18930/
+    cloroquina.wav        "Jacaré!"
+                          https://www.myinstants.com/pt/instant/bolsonaro-jacare-9918/
+    leite_condensado.wav  "Popcorn and ice cream!"
+                          https://www.myinstants.com/pt/instant/bolsonaro-popcorn-and-ice-cream-14465/
+    viagra.wav            "Imbrochável!"
+                          https://www.myinstants.com/pt/instant/imbroxavel-44092/
+    vitoria1.wav          "Chega de frescura, de mimimi!"
+                          https://www.myinstants.com/pt/instant/chega-de-frescura-e-mimimi-97038/
+    vitoria2.wav          "Obrigado, meu Deus!"  (fonte provável)
+                          https://www.myinstants.com/pt/instant/obrigado-meu-deus-bolsonaro-47570/
+    vitoria3.wav          "Já expliquei? Explica!"
+                          https://www.myinstants.com/pt/instant/ja-expliquei-51487/
+
+  Lula
+    intro.wav             "Agora, companheiros!"  (trecho do áudio "LULA PICANHA")
+                          https://www.myinstants.com/pt/instant/lula-picanha-43932/
+    picanha.wav           "Eu vou comer picanha!"
+    vitoria2.wav          "Eu vou comer picanha e vou tomar uma cerveja!"
+                          https://www.myinstants.com/pt/instant/vou-comer-uma-picanha-e-tomar-uma-cerveja-83221/
+    abobora.wav           "E agora vai entrar o grosso!"
+                          https://www.myinstants.com/pt/instant/e-agora-vai-entra-o-grosso-75362/
+    pinga51.wav           "Chupa que a cana é doce, meu filho!"
+                          https://www.myinstants.com/pt/instant/lula-chupa-cana-doce/
+    vitoria1.wav          "Tchau, querida!"
+                          https://www.myinstants.com/pt/instant/tchau-querida-lula/
+    vitoria3.wav          "Eu não sabia!"  (fonte provável)
+                          https://www.myinstants.com/pt/instant/eu-nao-sabia-lula/
+
+Nomes na tela de seleção (assets/personagens/*/nome.wav)
+  Voz "Reed" do macOS (Apple), com efeito de locutor. Locutor genérico, não imita ninguém.
+
+============================================================================================
+LOCUTOR (assets/sons/)
+============================================================================================
+
+Áudios do myinstants com o locutor da série Mortal Kombat (os direitos da franquia pertencem
+aos seus detentores; o site não informa licença). Alteração: recorte e volume igualado.
+
+  round1.wav  "Round one"     https://www.myinstants.com/pt/instant/round-1-fight/
+  fight.wav   "Fight!"        https://www.myinstants.com/pt/instant/round-1-fight/
+  round2.wav  "Round two"     https://www.myinstants.com/pt/instant/mortal-kombat-round-two/
+  round3.wav  "Final round"   https://www.myinstants.com/pt/instant/mk-round-final-fight-gong-mp3-13408/
+                              (fonte provável)
+
+============================================================================================
+BIBLIOTECAS E FERRAMENTAS
+============================================================================================
+
+Pygame — biblioteca do jogo
+  https://www.pygame.org — Licença: LGPL 2.1
+
+NumPy — conversão de fotos em pixel art e síntese de som
+  https://numpy.org — Licença: BSD 3-Clause
+
+Demucs (Meta AI Research) — separar a voz da música no vídeo de referência
+  https://github.com/facebookresearch/demucs — Licença: MIT
+
+PyInstaller — gerar os executáveis das releases (não faz parte do jogo)
+  https://pyinstaller.org — Licença: GPL 2.0 com exceção para o executável gerado
+
+Claude Code (Anthropic) — ferramenta de IA
+  https://claude.com/claude-code
+  Uso: apoio no desenvolvimento e revisão do código, depuração, recorte e tratamento dos
+  áudios, automação das releases, testes automatizados e documentação. A declaração completa
+  (finalidade, trechos afetados e validação) está na apresentação do projeto.
+
+============================================================================================
+CÓDIGO E REFERÊNCIAS
+============================================================================================
+
+Código: escrito para este projeto, com apoio de IA (ver acima). Não há trechos copiados de
+repositórios de terceiros.
+
+Referências estudadas (sem uso de código ou arte):
+  Documentação do Pygame — https://www.pygame.org/docs/
+  Documentação do NumPy — https://numpy.org/doc/
+  Street Fighter II (Capcom, 1991), Mortal Kombat (Midway, 1992) e MUGEN (Elecbyte) —
+  convenções do gênero: barras de vida, rounds, janelas de golpe, especiais, barra de super.
